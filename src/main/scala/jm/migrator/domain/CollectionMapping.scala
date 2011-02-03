@@ -5,7 +5,7 @@ package jm.migrator.domain
  * Date: 2/3/11 1:28 PM
  */
 
-class Collection(
-  val name: String,
+case class CollectionMapping(
+  name: String,
   override val from: String,
   override val mapping: Fields) extends Select

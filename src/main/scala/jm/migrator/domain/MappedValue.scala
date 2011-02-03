@@ -10,19 +10,19 @@ abstract sealed class MappedValue
 /**
  * Maps to primitive bson value
  */
-class ObjectValue(val column: String) extends MappedValue
+case class ObjectValue(val column: String) extends MappedValue
 
 /**
  * Maps to DBObject with fields
  */
-class Fields(val fields: Map[String, MappedValue]) extends MappedValue
+case class Fields(val fields: Map[String, MappedValue]) extends MappedValue
 
 /**
  * Maps subselect results to embedded array
  */
-class Array(
+case class Array(
   override val from: String,
-  override val mapping: Fields,
+  override val mapping: MappedValue,
   override val where: String = ""
 ) extends MappedValue with Select
 
