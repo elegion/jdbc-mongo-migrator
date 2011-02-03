@@ -10,12 +10,18 @@ abstract sealed class MappedValue
 /**
  * Maps to primitive bson value
  */
-case class ObjectValue(val column: String) extends MappedValue
+case class SimpleValue(column: String) extends MappedValue
+
+/**
+ * Generates object ID and saves binds it to column value for future references
+ */
+case class MongoId(column: String) extends MappedValue
+
 
 /**
  * Maps to DBObject with fields
  */
-case class Fields(val fields: Map[String, MappedValue]) extends MappedValue
+case class Fields(fields: Map[String, MappedValue]) extends MappedValue
 
 /**
  * Maps subselect results to embedded array

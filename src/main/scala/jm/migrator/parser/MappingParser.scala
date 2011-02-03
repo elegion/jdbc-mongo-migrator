@@ -22,9 +22,6 @@ class MappingParser {
     println("Parsing filename: "+filename)
     val input = Source.fromFile(filename).mkString
     val json = parse(input)
-
-//    println(pretty(render(json \ "collections" children)))
-
     val children = json \ "collections" children
 
     val collections = for {
@@ -33,7 +30,7 @@ class MappingParser {
     } yield parseCollection(name, data)
 
     implicit val formats = DefaultFormats
-//    println ("COLLECTIONS: " + pretty(render(Extraction.decompose(collections))))
+    println ("COLLECTIONS: " + collections)
   }
 
   def parseCollection(name: String, json: JValue): CollectionMapping = {
@@ -43,11 +40,12 @@ class MappingParser {
     CollectionMapping(name, from, Fields(fields))
   }
 
-
   def getMapping(obj: Any): MappedValue = {
     obj match {
       case column: String =>
-        ObjectValue(column)
+        SimpleValue(column)
+      case m: Map[String, String] if m.contains("$oid") =>
+        MongoId(m.get("$oid").get)
       case m: Map[String, Any] =>
         parseSubselect(m)
       case unknown => throw new Exception("Unknown field type: "+unknown)
