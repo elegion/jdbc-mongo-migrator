@@ -5,6 +5,9 @@ import jm.migrator.db.DBUtil._
 import net.lag.logging.Logger
 import java.sql.{ResultSetMetaData, ResultSet}
 import jm.migrator.domain.{MappedColumn, CollectionMapping}
+import collection.mutable.Buffer
+import com.mongodb.casbah.Imports._
+import jm.migrator.db.MongoUtil._
 
 /**
  * Authod: Yuri Buyanov
@@ -50,16 +53,41 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   def fetch = {
     using(connection) { conn =>
       mapping map { collectionMapping =>
+
+        log.info("=== db."+collectionMapping.name+" inserts: ===")
         using(conn createStatement ) { stmt =>
           using (stmt executeQuery (collectionMapping toSQL)) { rs =>
-            process(rs, collectionMapping)
+
+            val maps = process(rs, collectionMapping)
+            val insert = maps foreach { fieldmap =>
+
+              val map = clusterByPrefix(fieldmap).toMap
+              val obj: DBObject = map
+              log.info("INSERT: "+ obj)
+            }
+
+            maps
           }
         }
       }
     }
   }
 
-  def process(rs: ResultSet, collectionMapping: CollectionMapping): String = {
-    Meta(rs,collectionMapping) mkString "\n"
+  def process(rs: ResultSet, collectionMapping: CollectionMapping): Seq[Map[String, Any]] = {
+    val buffer = Buffer[Map[String, Any]]()
+    import scala.collection.mutable.Map
+    val columnFieldNames = collectionMapping.mapping.fields.collect{
+      case (name, MappedColumn(_)) => name
+    }
+    while (rs.next) {
+      val map = Map[String, Any]()
+      columnFieldNames.zipWithIndex foreach {
+        case (fieldName, index) =>
+          map.put(fieldName, rs.getObject(index+1))
+      }
+      buffer += map.toMap
+    }
+    buffer.toSeq
   }
+
 }

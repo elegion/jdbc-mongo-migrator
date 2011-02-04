@@ -7,6 +7,8 @@ import net.lag.configgy.Configgy
 import net.lag.logging.Logger
 
 
+
+
 /**
  * Authod: Yuri Buyanov
  * Date: 2/3/11 1:13 PM
@@ -26,7 +28,7 @@ object Launcher {
     log.debug("Collections: ")
     log.debug(collections toString)
     val importer = new SQLImporter(collections)
-    importer.fetch foreach (log.debug(_))
-
+    importer.fetch// foreach (seq => log.debug(seq.toString))
+    ()
   }
 }
