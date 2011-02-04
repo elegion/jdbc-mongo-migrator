@@ -28,7 +28,6 @@ case class SimpleValue(column: String) extends MappedValue with MappedColumn
  */
 case class MongoId(column: String) extends MappedValue with MappedColumn
 
-
 /**
  * Maps to DBObject with fields
  */

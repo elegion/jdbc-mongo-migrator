@@ -4,7 +4,7 @@ import jm.migrator.db.DBUtil._
 
 import net.lag.logging.Logger
 import java.sql.{ResultSetMetaData, ResultSet}
-import jm.migrator.domain.{MappedColumn, CollectionMapping}
+import jm.migrator.domain._
 import collection.mutable.Buffer
 import com.mongodb.casbah.Imports._
 import jm.migrator.db.MongoUtil._
@@ -77,13 +77,21 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
     val buffer = Buffer[Map[String, Any]]()
     import scala.collection.mutable.Map
     val columnFieldNames = collectionMapping.mapping.fields.collect{
-      case (name, MappedColumn(_)) => name
+      case (name, col: MappedColumn) => (name, col)
     }
+    log.debug("columnFieldNames = "+ columnFieldNames)
+
+
     while (rs.next) {
       val map = Map[String, Any]()
       columnFieldNames.zipWithIndex foreach {
-        case (fieldName, index) =>
-          map.put(fieldName, rs.getObject(index+1))
+        case ((fieldName, mappedColumn), index) =>
+          val rsValue = rs.getObject(index+1)
+          val value = mappedColumn match {
+            case MongoId(map) => getMongoId(rsValue)
+            case _ => rsValue
+          }
+          map.put(fieldName, value)
       }
       buffer += map.toMap
     }

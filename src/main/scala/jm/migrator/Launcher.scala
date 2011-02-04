@@ -25,7 +25,7 @@ object Launcher {
     log.debug(config.toConfigString)
     val filename = args.headOption.getOrElse(config.getString("mapping.file", "./data/mapping.json"))
     val collections = parser.parseFile(filename)
-    log.debug("Collections: ")
+    log.debug("Collections: "+collections)
     log.debug(collections toString)
     val importer = new SQLImporter(collections)
     importer.fetch// foreach (seq => log.debug(seq.toString))
