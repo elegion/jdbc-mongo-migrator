@@ -9,4 +9,11 @@ trait Select {
   def mapping: MappedValue
   def from: String
   def where: String = ""
+
+  def toSQL = {
+    val builder = new StringBuilder("SELECT ")
+    builder ++= mapping.columnsString
+    builder ++= " FROM " ++ from ++ " LIMIT 10"
+    builder toString
+  }
 }

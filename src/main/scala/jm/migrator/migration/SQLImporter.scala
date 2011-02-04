@@ -57,15 +57,19 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         log.info("=== db."+collectionMapping.name+" inserts: ===")
         using(conn createStatement ) { stmt =>
           using (stmt executeQuery (collectionMapping toSQL)) { rs =>
-
             val maps = process(rs, collectionMapping)
             val insert = maps foreach { fieldmap =>
-
               val map = clusterByPrefix(fieldmap).toMap
-              val obj: DBObject = map
-              log.info("INSERT: "+ obj)
-            }
+              val b = MongoDBObject.newBuilder
+              b ++= map
+              collectionMapping.mapping.fields collect {
+                case (name, a: Array) =>
+                  b += name -> List.empty
 
+              }
+
+              log.info("INSERT: "+ b.result)
+            }
             maps
           }
         }

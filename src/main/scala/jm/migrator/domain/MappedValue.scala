@@ -5,13 +5,16 @@ package jm.migrator.domain
  * Date: 2/3/11 2:10 PM
  */
 
-abstract sealed class MappedValue
+abstract sealed class MappedValue {
+  def columnsString: String
+}
 
 /**
  * Indicates that value is mapped to a single column
  */
-trait MappedColumn {
+trait MappedColumn extends MappedValue {
   def column: String
+  def columnsString = column
 }
 
 object MappedColumn {
@@ -31,7 +34,10 @@ case class MongoId(column: String) extends MappedValue with MappedColumn
 /**
  * Maps to DBObject with fields
  */
-case class Fields(fields: Map[String, MappedValue]) extends MappedValue
+case class Fields(fields: Map[String, MappedValue]) extends MappedValue {
+  def columnsString = (for {(field, MappedColumn(column)) <- fields}
+    yield column ).mkString(", ")
+}
 
 /**
  * Maps subselect results to embedded array
@@ -40,5 +46,7 @@ case class Array(
   override val from: String,
   override val mapping: MappedValue,
   override val where: String = ""
-) extends MappedValue with Select
+) extends MappedValue with Select {
+  def columnsString = null //TODO -- refactor and remove
+}
 
