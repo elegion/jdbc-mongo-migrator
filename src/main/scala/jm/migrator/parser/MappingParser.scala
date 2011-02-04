@@ -22,19 +22,16 @@ import net.lag.logging.Logger
 class MappingParser {
   val log = Logger.get
 
-  def parseFile(filename: String) = {
+  def parseFile(filename: String): Iterable[CollectionMapping] = {
     println("Parsing filename: "+filename)
     val input = Source.fromFile(filename).mkString
     val json = parse(input)
     val children = json \ "collections" children
 
-    val collections = for {
+    for {
       JObject(list) <- children
       JField(name, data) <- list
     } yield parseCollection(name, data)
-
-    implicit val formats = DefaultFormats
-    log.debug ("COLLECTIONS: " + collections)
   }
 
   def parseCollection(name: String, json: JValue): CollectionMapping = {

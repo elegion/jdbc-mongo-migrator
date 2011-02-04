@@ -1,5 +1,6 @@
 package jm.migrator
 
+import migration.SQLImporter
 import parser.MappingParser
 
 import net.lag.configgy.Configgy
@@ -21,7 +22,11 @@ object Launcher {
     log.debug("Using config: ")
     log.debug(config.toConfigString)
     val filename = args.headOption.getOrElse(config.getString("mapping.file", "./data/mapping.json"))
-    parser.parseFile(filename)
+    val collections = parser.parseFile(filename)
+    log.debug("Collections: ")
+    log.debug(collections toString)
+    val importer = new SQLImporter(collections)
+    importer.fetch foreach (log.debug(_))
 
   }
 }

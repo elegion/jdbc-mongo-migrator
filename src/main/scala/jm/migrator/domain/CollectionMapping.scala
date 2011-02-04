@@ -1,6 +1,6 @@
 package jm.migrator.domain
 
-import scala.collection.mutable
+import scala.collection.mutable.StringBuilder
 
 /**
  * Authod: Yuri Buyanov
@@ -11,4 +11,12 @@ case class CollectionMapping(
   name: String,
   override val from: String,
   override val mapping: Fields) extends Select {
+
+  def toSQL = {
+    //val
+    val builder = new StringBuilder("SELECT ")
+    builder ++= (for {(field, SimpleValue(column)) <- mapping.fields} yield column).mkString(", ")
+    builder ++= " FROM " ++ from
+    builder toString
+  }
 }

@@ -10,7 +10,10 @@ import jm.migrator.db.DBUtil._
  */
 
 class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
-  using(connection) { conn =>
 
+  def fetch = {
+    using(connection) { conn =>
+      mapping map ( _.toSQL )
+    }
   }
 }
