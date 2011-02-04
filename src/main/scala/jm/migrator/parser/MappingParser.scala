@@ -10,6 +10,8 @@ import net.liftweb.json.DefaultFormats
 
 import jm.migrator.domain._
 
+import net.lag.logging.Logger
+
 
 
 /**
@@ -18,6 +20,8 @@ import jm.migrator.domain._
  */
 
 class MappingParser {
+  val log = Logger.get
+
   def parseFile(filename: String) = {
     println("Parsing filename: "+filename)
     val input = Source.fromFile(filename).mkString
@@ -30,7 +34,7 @@ class MappingParser {
     } yield parseCollection(name, data)
 
     implicit val formats = DefaultFormats
-    println ("COLLECTIONS: " + collections)
+    log.debug ("COLLECTIONS: " + collections)
   }
 
   def parseCollection(name: String, json: JValue): CollectionMapping = {
