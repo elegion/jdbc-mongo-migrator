@@ -8,14 +8,25 @@ package jm.migrator.domain
 abstract sealed class MappedValue
 
 /**
+ * Indicates that value is mapped to a single column
+ */
+trait MappedColumn {
+  def column: String
+}
+
+object MappedColumn {
+  def unapply(col: MappedColumn) = Some(col.column)
+}
+
+/**
  * Maps to primitive bson value
  */
-case class SimpleValue(column: String) extends MappedValue
+case class SimpleValue(column: String) extends MappedValue with MappedColumn
 
 /**
  * Generates object ID and saves binds it to column value for future references
  */
-case class MongoId(column: String) extends MappedValue
+case class MongoId(column: String) extends MappedValue with MappedColumn
 
 
 /**
