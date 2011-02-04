@@ -54,9 +54,9 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
     using(connection) { conn =>
       mapping map { collectionMapping =>
 
-        log.info("=== db."+collectionMapping.name+" inserts: ===")
+        log.debug("=== db."+collectionMapping.name+" inserts: ===")
         using(conn createStatement ) { stmt =>
-          using (stmt executeQuery (collectionMapping toSQL)) { rs =>
+          using (stmt executeQuery (collectionMapping.toSQL())) { rs =>
             val maps = process(rs, collectionMapping)
             val insert = maps foreach { fieldmap =>
               val map = clusterByPrefix(fieldmap).toMap
@@ -64,17 +64,36 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
               b ++= map
               collectionMapping.mapping.fields collect {
                 case (name, a: Array) =>
-                  b += name -> List.empty
-
+                  log.debug("SUB SELECT: "+ a.toSQL(map))
+                  using(conn createStatement ) { stmt =>
+                    using (stmt executeQuery (a toSQL map)) { rs =>
+                      val arr = processSub(rs, a.mapping)
+                      b += name -> arr
+                    }
+                  }
               }
 
-              log.info("INSERT: "+ b.result)
+              log.debug("INSERT: "+ b.result)
             }
             maps
           }
         }
       }
     }
+  }
+
+  def processSub(rs: ResultSet, mapping: MappedValue): Seq[Any] = {
+    val buffer = Buffer[Any]()
+    while (rs.next) {
+      val rsValue = rs.getObject(1)
+      val value = mapping match {
+        case MongoId(map) => getMongoId(rsValue)
+        case _ => rsValue
+      }
+      log.debug("value: "+value)
+      buffer += value
+    }
+    buffer
   }
 
   def process(rs: ResultSet, collectionMapping: CollectionMapping): Seq[Map[String, Any]] = {
