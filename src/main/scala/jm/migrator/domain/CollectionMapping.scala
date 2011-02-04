@@ -15,7 +15,8 @@ case class CollectionMapping(
   def toSQL = {
     //val
     val builder = new StringBuilder("SELECT ")
-    builder ++= (for {(field, MappedColumn(column)) <- mapping.fields} yield column).mkString(", ")
+    builder ++= (for {(field, MappedColumn(column)) <- mapping.fields}
+      yield column ).mkString(", ")
     builder ++= " FROM " ++ from
     builder toString
   }
