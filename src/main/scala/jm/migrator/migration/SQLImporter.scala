@@ -3,6 +3,7 @@ package jm.migrator.migration
 import jm.migrator.db.DBUtil._
 
 import net.lag.logging.Logger
+import net.lag.configgy.Configgy
 import java.sql.{ResultSetMetaData, ResultSet}
 import jm.migrator.domain._
 import collection.mutable.Buffer
@@ -49,6 +50,8 @@ case object Meta {
 
 class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   val log = Logger get
+  val config = Configgy.config
+  val limit = config.getInt("jdbc.limit", 0)
 
   def fetch = {
     using(connection) { conn =>
@@ -57,13 +60,14 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         log.debug("=== db."+collectionMapping.name+" inserts: ===")
         using(conn createStatement ) { stmt =>
           using (stmt executeQuery (collectionMapping.toSQL())) { rs =>
-            val maps = process(rs, collectionMapping)
-            val insert = maps foreach { fieldmap =>
+            val flatValuesMaps = process(rs, collectionMapping)
+
+            val insert = flatValuesMaps foreach { fieldmap =>
               val map = clusterByPrefix(fieldmap).toMap
               val b = MongoDBObject.newBuilder
               b ++= map
               collectionMapping.mapping.fields collect {
-                case (name, a: Array) =>
+                case (name, a: Array) => {
                   log.debug("SUB SELECT: "+ a.toSQL(map))
                   using(conn createStatement ) { stmt =>
                     using (stmt executeQuery (a toSQL map)) { rs =>
@@ -71,11 +75,12 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
                       b += name -> arr
                     }
                   }
+                }
               }
 
               log.debug("INSERT: "+ b.result)
             }
-            maps
+            flatValuesMaps
           }
         }
       }
@@ -87,7 +92,7 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
     while (rs.next) {
       val rsValue = rs.getObject(1)
       val value = mapping match {
-        case MongoId(map) => getMongoId(rsValue)
+        case mc: MappedColumn => mc.toValue(rs.getObject(1))
         case _ => rsValue
       }
       log.debug("value: "+value)
@@ -110,10 +115,7 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
       columnFieldNames.zipWithIndex foreach {
         case ((fieldName, mappedColumn), index) =>
           val rsValue = rs.getObject(index+1)
-          val value = mappedColumn match {
-            case MongoId(map) => getMongoId(rsValue)
-            case _ => rsValue
-          }
+          val value = mappedColumn toValue rsValue
           map.put(fieldName, value)
       }
       buffer += map.toMap

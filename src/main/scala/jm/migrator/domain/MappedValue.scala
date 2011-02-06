@@ -1,5 +1,7 @@
 package jm.migrator.domain
 
+import jm.migrator.db.MongoUtil
+
 /**
  * Authod: Yuri Buyanov
  * Date: 2/3/11 2:10 PM
@@ -15,6 +17,7 @@ abstract sealed class MappedValue {
 trait MappedColumn extends MappedValue {
   def column: String
   def columnsString = column
+  def toValue(sqlValue: Any): Any = sqlValue
 }
 
 object MappedColumn {
@@ -29,7 +32,20 @@ case class SimpleValue(column: String) extends MappedValue with MappedColumn
 /**
  * Generates object ID and saves binds it to column value for future references
  */
-case class MongoId(column: String) extends MappedValue with MappedColumn
+case class MongoId(column: String) extends MappedValue with MappedColumn {
+  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue)
+
+}
+
+/**
+ * Generates object ID and saves binds it to column value for future references
+ * @returns it as string
+ */
+case class StringMongoId(column: String) extends MappedValue with MappedColumn {
+  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue).toString
+
+}
+
 
 /**
  * Maps to DBObject with fields

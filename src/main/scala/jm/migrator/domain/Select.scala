@@ -20,7 +20,6 @@ trait Select {
     if (where.length > 0) {
       builder ++= " WHERE " ++ where.render(expressionParams.mapValues(_.toString))
     }
-    builder ++= " LIMIT 10"
     builder toString
   }
 }
