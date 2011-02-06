@@ -37,25 +37,28 @@ class MappingParser {
   def parseCollection(name: String, json: JValue): CollectionMapping = {
     val from = (json \ "from" \ classOf[JString])(0)
     val jfields = Map(json \ "mapping" \ classOf[JField]: _*)
-    val fields = jfields mapValues getMapping
+    val fields = jfields mapValues getMapping(name)
     CollectionMapping(name, from, Fields(fields))
   }
 
-  def getMapping(obj: Any): MappedValue = {
+
+  def getMapping(collection: String)(obj: Any): MappedValue = {
     obj match {
       case column: String =>
         SimpleValue(column)
       case m: Map[String, String] if m.contains("$oid") =>
-        MongoId(m.get("$oid").get)
+        MongoId(m.get("$oid").get, collection)
+      case m: Map[String, String] if m.contains("$oidString") =>
+        StringMongoId(m.get("$oidString").get, collection)
       case m: Map[String, Any] =>
-        parseSubselect(m)
+        parseSubselect(m, collection)
       case unknown => throw new Exception("Unknown field type: "+unknown)
     }
   }
 
-  def parseSubselect(subselect: Map[String, Any]): Array = {
+  def parseSubselect(subselect: Map[String, Any], collection: String): Array = {
     val from = subselect.getOrElse("from", throw new Exception("No 'from' specified" + subselect)).toString
-    val mapping = subselect.get("mapping") map getMapping getOrElse (throw new Exception("No 'mapping' specified" + subselect))
+    val mapping = subselect get("mapping") map getMapping(collection) getOrElse (throw new Exception("No 'mapping' specified" + subselect))
     val where = subselect.get("where").getOrElse("").toString
     Array(from, mapping, where)
   }

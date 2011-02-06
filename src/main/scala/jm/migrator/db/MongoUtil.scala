@@ -44,12 +44,12 @@ object MongoUtil {
   }
 
   import scala.collection.mutable.Map
-  val idCache = Map[Any, ObjectId]()
+  val idCache = Map[(String, Any), ObjectId]()
 
-  def getMongoId(value: Any): ObjectId =
-    idCache.get(value).getOrElse{
+  def getMongoId(value: Any, collection: String): ObjectId =
+    idCache.get(collection, value).getOrElse{
       val id = new ObjectId()
-      idCache.put(value, id)
+      idCache.put((collection, value), id)
       id
     }
 

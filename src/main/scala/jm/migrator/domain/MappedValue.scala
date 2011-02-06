@@ -32,8 +32,8 @@ case class SimpleValue(column: String) extends MappedValue with MappedColumn
 /**
  * Generates object ID and saves binds it to column value for future references
  */
-case class MongoId(column: String) extends MappedValue with MappedColumn {
-  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue)
+case class MongoId(column: String, collection: String) extends MappedValue with MappedColumn {
+  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection)
 
 }
 
@@ -41,8 +41,8 @@ case class MongoId(column: String) extends MappedValue with MappedColumn {
  * Generates object ID and saves binds it to column value for future references
  * @returns it as string
  */
-case class StringMongoId(column: String) extends MappedValue with MappedColumn {
-  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue).toString
+case class StringMongoId(column: String, collection: String) extends MappedValue with MappedColumn {
+  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection).toString
 
 }
 
