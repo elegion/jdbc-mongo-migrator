@@ -53,12 +53,12 @@ object MongoUtil {
   def getMongoId(value: Any, collection: String): ObjectId =
     idCache.get(collection, value)
       .map{ id =>
-        log.debug("Cache hit for $oid %s", id.toString)
+        log.debug("Cache hit for $oid %s in \"%s\"", id.toString, collection)
         id
       }.getOrElse{
         val id = new ObjectId()
         idCache.put((collection, value), id)
-        log.debug("Cache miss: created $oid %s", id.toString)
+        log.debug("Cache miss: created $oid %s in \"%s\"", id.toString, collection)
         id
       }
 }

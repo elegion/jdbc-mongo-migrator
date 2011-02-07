@@ -52,11 +52,11 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   val log = Logger get
   val config = Configgy.config
   val limit = config.getInt("jdbc.limit", 0)
-  var offset = 0
   def fetch = {
 
     using(connection) { conn =>
       mapping map { collectionMapping =>
+        var offset = 0
         var fetched = -1
         var fetchedTotal = 0
         log.debug("=== db."+collectionMapping.name+" inserts: ===")

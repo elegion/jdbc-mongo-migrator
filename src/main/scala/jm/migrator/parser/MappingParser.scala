@@ -46,14 +46,26 @@ class MappingParser {
     obj match {
       case column: String =>
         SimpleValue(column)
-      case m: Map[String, String] if m.contains("$oid") =>
-        MongoId(m.get("$oid").get, collection)
-      case m: Map[String, String] if m.contains("$oidString") =>
-        StringMongoId(m.get("$oidString").get, collection)
+      case m: Map[String, Any] if m.contains("$oid") =>
+        m.get("$oid") match {
+          case Some(key: String) => MongoId(key, collection)
+          case Some(oidData: Map[String, String]) => MongoId(oidData.get("key").get, oidData.get("collection").get)
+          case unknown  => throw new Exception("Incorrect $oid mapping: "+unknown)
+        }
+      case m: Map[String, Any] if m.contains("$oidString") =>
+        m.get("$oidString") match {
+          case Some(key: String) => StringMongoId(key, collection)
+          case Some(oidData: Map[String, String]) => StringMongoId(oidData.get("key").get, oidData.get("collection").get)
+          case unknown  => throw new Exception("Incorrect $oidString mapping: "+unknown)
+        }
       case m: Map[String, Any] =>
         parseSubselect(m, collection)
       case unknown => throw new Exception("Unknown field type: "+unknown)
     }
+  }
+
+  def createMongoId(currentCollection: String, oidValue: Any) {
+
   }
 
   def parseSubselect(subselect: Map[String, Any], collection: String): Array = {
