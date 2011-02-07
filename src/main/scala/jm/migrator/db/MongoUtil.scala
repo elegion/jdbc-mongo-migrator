@@ -2,6 +2,7 @@ package jm.migrator.db
 
 import com.mongodb.casbah.Imports._
 
+import net.lag.logging.Logger
 
 /**
  * Authod: Yuri Buyanov
@@ -9,6 +10,9 @@ import com.mongodb.casbah.Imports._
  */
 
 object MongoUtil {
+  val log = Logger get
+
+
   def expandPair(k: String, v: Any): Pair[String, Any] = {
     val names = k.split('.')
     val value = names.tail match {
@@ -47,11 +51,14 @@ object MongoUtil {
   val idCache = Map[(String, Any), ObjectId]()
 
   def getMongoId(value: Any, collection: String): ObjectId =
-    idCache.get(collection, value).getOrElse{
-      val id = new ObjectId()
-      idCache.put((collection, value), id)
-      id
-    }
-
-
+    idCache.get(collection, value)
+      .map{ id =>
+        log.debug("Cache hit for $oid %s", id.toString)
+        id
+      }.getOrElse{
+        val id = new ObjectId()
+        idCache.put((collection, value), id)
+        log.debug("Cache miss: created $oid %s", id.toString)
+        id
+      }
 }
