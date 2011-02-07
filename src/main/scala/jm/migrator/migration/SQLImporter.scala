@@ -4,11 +4,11 @@ import jm.migrator.db.DBUtil._
 
 import net.lag.logging.Logger
 import net.lag.configgy.Configgy
-import java.sql.{ResultSetMetaData, ResultSet}
 import jm.migrator.domain._
 import collection.mutable.Buffer
 import com.mongodb.casbah.Imports._
 import jm.migrator.db.MongoUtil._
+import java.sql.{Statement, Connection, ResultSetMetaData, ResultSet}
 
 /**
  * Authod: Yuri Buyanov
@@ -52,40 +52,65 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   val log = Logger get
   val config = Configgy.config
   val limit = config.getInt("jdbc.limit", 0)
-
+  var offset = 0
   def fetch = {
+
     using(connection) { conn =>
       mapping map { collectionMapping =>
-
+        var fetched = -1
+        var fetchedTotal = 0
         log.debug("=== db."+collectionMapping.name+" inserts: ===")
-        using(conn createStatement ) { stmt =>
-          using (stmt executeQuery (collectionMapping.toSQL())) { rs =>
-            val flatValuesMaps = process(rs, collectionMapping)
-
-            val insert = flatValuesMaps foreach { fieldmap =>
-              val map = clusterByPrefix(fieldmap).toMap
-              val b = MongoDBObject.newBuilder
-              b ++= map
-              collectionMapping.mapping.fields collect {
-                case (name, a: Array) => {
-                  log.debug("SUB SELECT: "+ a.toSQL(map))
-                  using(conn createStatement ) { stmt =>
-                    using (stmt executeQuery (a toSQL map)) { rs =>
-                      val arr = processSub(rs, a.mapping)
-                      b += name -> arr
-                    }
-                  }
-                }
-              }
-
-              log.debug("INSERT: "+ b.result)
-            }
-            flatValuesMaps
+        do {
+          fetched = using(conn createStatement ) { stmt =>
+                          query(
+                            collectionMapping,
+                            stmt,
+                            limit,
+                            offset
+                          )
           }
-        }
+          offset += limit
+          fetchedTotal += fetched
+        } while (limit!=0 && fetched!=0)
+        log.debug("%d entries imported to %s", fetchedTotal, collectionMapping.name)
       }
     }
   }
+
+  def query(collectionMapping: CollectionMapping,
+            stmt: Statement,
+            limit: Int,
+            offset: Int): Int = {
+    val SQL = collectionMapping.toSQL()
+    val pagedSQL = SQL + (limit match {
+      case 0 => ""
+      case lim => " LIMIT "+lim+" OFFSET "+offset
+    })
+    log.debug("SQL: "+pagedSQL)
+
+    using (stmt executeQuery pagedSQL) { rs: ResultSet =>
+      val flatValuesMaps = process(rs, collectionMapping)
+      val insert = flatValuesMaps foreach { fieldmap =>
+        val map = clusterByPrefix(fieldmap).toMap
+        val b = MongoDBObject.newBuilder
+        b ++= map
+        collectionMapping.mapping.fields collect {
+          case (name, a: Array) => {
+            log.debug("SUB SELECT: "+ a.toSQL(map))
+            using(stmt.getConnection createStatement ) { stmt =>
+              using (stmt executeQuery (a toSQL map)) { rs =>
+                val arr = processSub(rs, a.mapping)
+                b += name -> arr
+              }
+            }
+          }
+        }
+        log.debug("INSERT: "+ b.result)
+      }
+      flatValuesMaps.size
+    }
+  }
+
 
   def processSub(rs: ResultSet, mapping: MappedValue): Seq[Any] = {
     val buffer = Buffer[Any]()
