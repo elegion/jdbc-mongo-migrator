@@ -59,14 +59,16 @@ class MappingParser {
           case Some(oidData: Map[String, String]) => StringMongoId(oidData.get("key").get, oidData.get("collection").get)
           case unknown  => throw new Exception("Incorrect $oidString mapping: "+unknown)
         }
-      case m: Map[String, Any] =>
+      case m: Map[String, Any] if m.contains("from") =>
         parseSubselect(m, collection)
+      case m: Map[String, Any] =>
+        Fields(m mapValues getMapping(collection))
       case unknown => throw new Exception("Unknown field type: "+unknown)
     }
   }
 
   def parseSubselect(subselect: Map[String, Any], collection: String): Array = {
-    val from = subselect.getOrElse("from", throw new Exception("No 'from' specified" + subselect)).toString
+    val from = subselect.getOrElse("from", throw new Exception("No 'from' specified: " + subselect)).toString
     val mapping = subselect get("mapping") map getMapping(collection) getOrElse (throw new Exception("No 'mapping' specified" + subselect))
     val where = subselect.get("where").getOrElse("").toString
     Array(from, mapping, where)
