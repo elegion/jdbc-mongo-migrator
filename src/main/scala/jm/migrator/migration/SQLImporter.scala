@@ -104,10 +104,17 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   def processSub(rs: ResultSet, mapping: MappedValue): Seq[Any] = {
     val buffer = Buffer[Any]()
     while (rs.next) {
-      val rsValue = rs.getObject(1)
+//      val rsValue = rs.getObject(1)
       val value = mapping match {
         case mc: MappedColumn => mc.toValue(rs.getObject(1))
-        case _ => rsValue
+        case Fields(fieldmap) => {
+          val pairs = fieldmap.zipWithIndex map {
+            case ((fieldName, mappedColumn), index) =>
+              (fieldName, mappedColumn.asInstanceOf[MappedColumn] toValue rs.getObject(index+1))
+          }
+          MongoDBObject(pairs.toSeq: _*)
+        }
+        case _ => rs.getObject(1)
       }
       log.debug("value: "+value)
       buffer += value
