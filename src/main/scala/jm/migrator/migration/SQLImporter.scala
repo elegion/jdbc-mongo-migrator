@@ -72,7 +72,7 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
           offset += limit
           fetchedTotal += fetched
         } while (limit!=0 && fetched!=0)
-        log.debug("%d entries imported to %s", fetchedTotal, collectionMapping.name)
+        log.info("%d entries imported to %s", fetchedTotal, collectionMapping.name)
       }
     }
   }

@@ -37,8 +37,9 @@ class MappingParser {
   def parseCollection(name: String, json: JValue): CollectionMapping = {
     val from = (json \ "from" \ classOf[JString])(0)
     val jfields = Map(json \ "mapping" \ classOf[JField]: _*)
+    val where = (json \ "where" \ classOf[JString]).headOption.getOrElse("")
     val fields = jfields mapValues getMapping(name)
-    CollectionMapping(name, from, Fields(fields))
+    CollectionMapping(name, from, Fields(fields), where)
   }
 
 
@@ -62,10 +63,6 @@ class MappingParser {
         parseSubselect(m, collection)
       case unknown => throw new Exception("Unknown field type: "+unknown)
     }
-  }
-
-  def createMongoId(currentCollection: String, oidValue: Any) {
-
   }
 
   def parseSubselect(subselect: Map[String, Any], collection: String): Array = {

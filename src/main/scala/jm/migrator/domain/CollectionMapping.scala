@@ -10,5 +10,6 @@ import scala.collection.mutable.StringBuilder
 case class CollectionMapping(
   name: String,
   override val from: String,
-  override val mapping: Fields) extends Select {
+  override val mapping: Fields,
+  override val where: String = "") extends Select {
 }
