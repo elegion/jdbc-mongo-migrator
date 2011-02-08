@@ -94,17 +94,6 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         val map = clusterByPrefix(fieldmap).toMap
         val b = MongoDBObject.newBuilder
         b ++= map
-        collectionMapping.mapping.fields collect {
-          case (name, a: Array) => {
-            log.debug("SUB SELECT: "+ a.toSQL(map))
-            using(stmt.getConnection createStatement ) { stmt =>
-              using (stmt executeQuery (a toSQL map)) { rs =>
-                val arr = processSub(rs, a.mapping)
-                b += name -> arr
-              }
-            }
-          }
-        }
         log.debug("INSERT: "+ b.result)
       }
       flatValuesMaps.size
@@ -137,12 +126,27 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
 
     while (rs.next) {
       val map = Map[String, Any]()
+      //collect simple values from resultset
       columnFieldNames.zipWithIndex foreach {
         case ((fieldName, mappedColumn), index) =>
           val rsValue = rs.getObject(index+1)
           val value = mappedColumn toValue rsValue
           map.put(fieldName, value)
       }
+      //execute subselects
+      collectionMapping.mapping.fields collect {
+        case (name, a: Array) => {
+          log.debug("SUB SELECT: "+ a.toSQL(map.toMap))
+          using(rs.getStatement.getConnection.createStatement) { stmt =>
+            using (stmt executeQuery (a toSQL map.toMap)) { rs =>
+              val arr = processSub(rs, a.mapping)
+              map.put(name, arr)
+            }
+          }
+        }
+      }
+
+
       buffer += map.toMap
     }
     buffer.toSeq
