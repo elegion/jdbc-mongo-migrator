@@ -2,6 +2,7 @@ package jm.migrator
 
 import migration.SQLImporter
 import parser.MappingParser
+import db.MongoUtil
 
 import net.lag.configgy.Configgy
 import net.lag.logging.Logger
@@ -29,6 +30,7 @@ object Launcher {
     log.debug(collections toString)
     val importer = new SQLImporter(collections)
     importer.fetch// foreach (seq => log.debug(seq.toString))
+    MongoUtil.close
     ()
   }
 }

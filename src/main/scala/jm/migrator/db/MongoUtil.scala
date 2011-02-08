@@ -3,6 +3,7 @@ package jm.migrator.db
 import com.mongodb.casbah.Imports._
 
 import net.lag.logging.Logger
+import net.lag.configgy.Configgy
 
 /**
  * Authod: Yuri Buyanov
@@ -11,7 +12,31 @@ import net.lag.logging.Logger
 
 object MongoUtil {
   val log = Logger get
+  val config = Configgy config
 
+  val dryRun = config.getBool("mongo.dry-run", true)
+
+
+  val (connOpt, dbOpt) =
+    if (dryRun) {
+      log.warning("DRY RUN, NO ACTUAL DATA WRITTEN")
+      (None, None)
+    } else {
+      val conn = MongoConnection(
+        config.getString("mongo.host", "localhost"),
+        config.getInt("mongo.port", 27017))
+      log.info("Connected to %s", conn.debugString)
+
+      val db = conn(config.getString("mongo.database", "default"))
+      log.info("Using DB %s", db)
+
+      if (config.getBool("mongo.clean", true)) {
+        log.info("mongo.clean = true, dropping DB before migration")
+        db.dropDatabase
+      }
+
+      (Some(conn), Some(db))
+    }
 
   def expandPair(k: String, v: Any): Pair[String, Any] = {
     val names = k.split('.')
@@ -61,4 +86,21 @@ object MongoUtil {
         log.debug("Cache miss: created $oid %s in \"%s\"", id.toString, collection)
         id
       }
+
+  def doInsert(objects: Seq[DBObject], collectionName: String) = {
+    log.info("Inserting %d entries into \"%s\" collection", objects.size, collectionName)
+    objects foreach (o => log.debug(o.toString))
+    dbOpt.foreach { db =>
+      val collection = db.getCollection(collectionName)
+      val result = collection.insert(objects.toArray, WriteConcern.Safe)
+      log.info("Insert result: %s", result)
+    }
+  }
+
+  def close = {
+    connOpt foreach { conn =>
+      log.info("Closing connection %s", conn)
+      conn.close
+    }
+  }
 }

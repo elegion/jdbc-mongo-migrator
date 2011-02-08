@@ -90,12 +90,13 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
 
     using (stmt executeQuery pagedSQL) { rs: ResultSet =>
       val flatValuesMaps = process(rs, collectionMapping)
-      val insert = flatValuesMaps foreach { fieldmap =>
+      val insert = flatValuesMaps map { fieldmap =>
         val map = clusterByPrefix(fieldmap).toMap
         val b = MongoDBObject.newBuilder
         b ++= map
-        log.debug("INSERT: "+ b.result)
+        b.result
       }
+      doInsert(insert, collectionMapping.name)
       flatValuesMaps.size
     }
   }
@@ -116,7 +117,6 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         }
         case _ => rs.getObject(1)
       }
-      log.debug("value: "+value)
       buffer += value
     }
     buffer
@@ -128,8 +128,6 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
     val columnFieldNames = collectionMapping.mapping.fields.collect{
       case (name, col: MappedColumn) => (name, col)
     }
-    log.debug("columnFieldNames = "+ columnFieldNames)
-
 
     while (rs.next) {
       val map = Map[String, Any]()
