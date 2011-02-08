@@ -11,15 +11,20 @@ import util.matching.Regex
 class Expression(val expression: String) {
   def render(params: Map[String, Any]): String = {
     Expression.paramRegex.replaceAllIn(expression, { m: Regex.Match =>
-      ///
       params.get(m.group(1)).getOrElse("").toString
     })
+  }
+
+  def placeholders: Seq[String] = {
+    Expression.paramRegex.findAllIn(expression).map { placeholder =>
+      Expression.paramRegex.findFirstMatchIn(placeholder).get.group(1)
+    }.toSeq
   }
 }
 
 
 object Expression {
-  val paramRegex = """\$\{(\w+)\}""".r
+  val paramRegex = """\$\{([\.\w]+)\}""".r
 
   def apply(expression: String) = new Expression(expression)
 }

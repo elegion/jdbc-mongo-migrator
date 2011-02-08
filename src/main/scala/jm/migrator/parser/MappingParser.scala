@@ -47,6 +47,11 @@ class MappingParser {
     obj match {
       case column: String =>
         SimpleValue(column)
+      case m: Map[String, Any] if m.contains("$surl") =>
+        m.get("$surl") match {
+          case Some(expr: String) => ShortUrl(expr)
+          case unknown  => throw new Exception("Incorrect $oid mapping: "+unknown)
+        }
       case m: Map[String, Any] if m.contains("$oid") =>
         m.get("$oid") match {
           case Some(key: String) => MongoId(key, collection)

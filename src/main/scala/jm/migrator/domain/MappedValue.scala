@@ -2,6 +2,9 @@ package jm.migrator.domain
 
 import jm.migrator.db.MongoUtil
 
+import jm.migrator.util.Implicits._
+import jm.migrator.util.ShortUrlEncoder
+
 /**
  * Authod: Yuri Buyanov
  * Date: 2/3/11 2:10 PM
@@ -43,8 +46,22 @@ case class MongoId(column: String, collection: String) extends MappedValue with 
  */
 case class StringMongoId(column: String, collection: String) extends MappedValue with MappedColumn {
   override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection).toString
-
 }
+
+/**
+ * Generates short url
+ * @returns it as string
+ */
+case class ShortUrl(expression: String) extends MappedValue with MappedColumn {
+  override def toValue(sqlValue: Any) = {
+    val n = sqlValue.asInstanceOf[Int]
+    expression.render(Map(column -> ShortUrlEncoder.encodeUrl(n)))
+  }
+
+
+  def column = expression.placeholders.head
+}
+
 
 
 /**
