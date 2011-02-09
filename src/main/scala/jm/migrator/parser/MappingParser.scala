@@ -52,6 +52,16 @@ class MappingParser {
           case Some(expr: String) => ShortUrl(expr)
           case unknown  => throw new Exception("Incorrect $oid mapping: "+unknown)
         }
+      case m: Map[String, Any] if m.contains("$int") =>
+        m.get("$int") match {
+          case Some(key: String) => ToInt(key)
+          case unknown  => throw new Exception("Incorrect $int mapping: "+unknown)
+        }
+      case m: Map[String, Any] if m.contains("$long") =>
+        m.get("$long") match {
+          case Some(key: String) => ToLong(key)
+          case unknown  => throw new Exception("Incorrect $long mapping: "+unknown)
+        }
       case m: Map[String, Any] if m.contains("$oid") =>
         m.get("$oid") match {
           case Some(key: String) => MongoId(key, collection)
