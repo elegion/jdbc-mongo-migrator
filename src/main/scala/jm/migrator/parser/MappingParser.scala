@@ -74,8 +74,11 @@ class MappingParser {
           case Some(oidData: Map[String, String]) => StringMongoId(oidData.get("key").get, oidData.get("collection").get)
           case unknown  => throw new Exception("Incorrect $oidString mapping: "+unknown)
         }
-      case m: Map[String, Any] if m.contains("from") =>
-        parseSubselect(m, collection)
+      case m: Map[String, Any] if m.contains("$array") =>
+        m.get("$array") match {
+          case Some(array: Map[String, Any]) => parseSubselect(array, collection)
+          case unknown  => throw new Exception("Incorrect $array mapping: "+unknown)
+        }
       case m: Map[String, Any] =>
         Fields(m mapValues getMapping(collection))
       case unknown => throw new Exception("Unknown field type: "+unknown)
