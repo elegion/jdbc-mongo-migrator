@@ -100,3 +100,15 @@ case class Array(
   def columnsString = null //TODO -- refactor and remove
 }
 
+
+/**
+ * Maps subselect results to embedded array
+ */
+case class Count(
+  override val from: String,
+  override val where: String = ""
+) extends MappedValue with Select {
+  def mapping = SimpleValue("COUNT(*)")
+  def columnsString = null //TODO -- refactor and remove
+}
+

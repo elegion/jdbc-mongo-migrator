@@ -149,6 +149,15 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
             }
           }
         }
+        case (name, c: Count) => {
+          log.debug("SUB SELECT: "+ c.toSQL(map.toMap))
+          using(rs.getStatement.getConnection.createStatement) { stmt =>
+            using (stmt executeQuery (c toSQL map.toMap)) { rs =>
+              val count = if (rs.first()) rs.getInt(1) else 0
+              map.put(name, count)
+            }
+          }
+        }
       }
 
 

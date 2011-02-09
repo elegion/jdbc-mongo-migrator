@@ -79,10 +79,21 @@ class MappingParser {
           case Some(array: Map[String, Any]) => parseSubselect(array, collection)
           case unknown  => throw new Exception("Incorrect $array mapping: "+unknown)
         }
+      case m: Map[String, Any] if m.contains("$count") =>
+        m.get("$count") match {
+          case Some(count: Map[String, Any]) => parseCount(count)
+          case unknown  => throw new Exception("Incorrect $count mapping: "+unknown)
+        }
       case m: Map[String, Any] =>
         Fields(m mapValues getMapping(collection))
       case unknown => throw new Exception("Unknown field type: "+unknown)
     }
+  }
+
+  def parseCount(subselect: Map[String, Any]) = {
+    val from = subselect.getOrElse("from", throw new Exception("No 'from' specified: " + subselect)).toString
+    val where = subselect.get("where").getOrElse("").toString
+    Count(from, where)
   }
 
   def parseSubselect(subselect: Map[String, Any], collection: String): Array = {
