@@ -158,6 +158,18 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
             }
           }
         }
+        case (name, c: CountMap) => {
+          log.debug("SUB SELECT: "+ c.toSQL(map.toMap))
+          using(rs.getStatement.getConnection.createStatement) { stmt =>
+            using (stmt executeQuery (c toSQL map.toMap)) { rs =>
+              val countMap = MongoDBObject.newBuilder
+              while(rs.next) {
+                countMap += (rs.getString(1) -> rs.getInt(2))
+              }
+              map.put(name, countMap.result)
+            }
+          }
+        }
       }
 
 

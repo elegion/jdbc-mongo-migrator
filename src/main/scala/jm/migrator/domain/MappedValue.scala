@@ -79,8 +79,6 @@ case class ShortUrl(expression: String) extends MappedValue with MappedColumn {
   def column = expression.placeholders.head
 }
 
-
-
 /**
  * Maps to DBObject with fields
  */
@@ -111,4 +109,18 @@ case class Count(
   def mapping = SimpleValue("COUNT(*)")
   def columnsString = null //TODO -- refactor and remove
 }
+
+/**
+ * Maps subselect results to embedded array
+ */
+case class CountMap(
+  override val from: String,
+  override val where: String = "",
+  key: String
+) extends MappedValue with Select {
+  override def toSQL(expressionParams: Map[String, Any]) = super.toSQL(expressionParams) + " GROUP BY "+key
+  def mapping = Fields(Map("key" -> SimpleValue(key), "value" -> SimpleValue("COUNT(*)")))
+  def columnsString = null //TODO -- refactor and remove
+}
+
 
