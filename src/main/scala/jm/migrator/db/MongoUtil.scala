@@ -30,6 +30,12 @@ object MongoUtil {
       val db = conn(config.getString("mongo.database", "default"))
       log.info("Using DB %s", db)
 
+      val user = config.getString("mongo.user", "")
+      if (user.length > 0) {
+        log.info("Authenticating as %s", user)
+        db.authenticate(user, config.getString("mongo.password", ""))
+      }
+
       if (config.getBool("mongo.clean", true)) {
         log.info("mongo.clean = true, dropping DB before migration")
         db.dropDatabase
