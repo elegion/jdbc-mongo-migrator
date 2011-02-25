@@ -136,7 +136,9 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         case ((fieldName, mappedColumn), index) =>
           val rsValue = rs.getObject(index+1)
           val value = mappedColumn toValue rsValue
-          map.put(fieldName, value)
+          if (value!=null) {
+            map.put(fieldName, value)
+          }
       }
       //execute subselects
       collectionMapping.mapping.fields collect {
@@ -162,11 +164,14 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
           log.debug("SUB SELECT: "+ c.toSQL(map.toMap))
           using(rs.getStatement.getConnection.createStatement) { stmt =>
             using (stmt executeQuery (c toSQL map.toMap)) { rs =>
-              val countMap = MongoDBObject.newBuilder
-              while(rs.next) {
-                countMap += (rs.getString(1) -> rs.getInt(2))
+              if (rs.next) {
+                val countMap = MongoDBObject.newBuilder
+                do {
+                  log.debug("countMap %s.%s = %d", name , rs.getString(1), rs.getInt(2))
+                  countMap += (rs.getString(1) -> rs.getInt(2))
+                } while(rs.next)
+                map.put(name, countMap.result)
               }
-              map.put(name, countMap.result)
             }
           }
         }
