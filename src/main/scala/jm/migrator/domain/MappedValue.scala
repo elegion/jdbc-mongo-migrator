@@ -98,6 +98,13 @@ case class Array(
   def columnsString = null //TODO -- refactor and remove
 }
 
+/**
+ * Maps several column values to array
+ */
+case class ColArray(cols: Seq[String]) extends MappedValue {
+  def columnsString = cols.mkString(", ")
+}
+
 
 /**
  * Maps subselect results to embedded array

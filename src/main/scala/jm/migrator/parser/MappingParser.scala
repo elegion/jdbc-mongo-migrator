@@ -79,6 +79,11 @@ class MappingParser {
           case Some(array: Map[String, Any]) => parseSubselect(array, collection)
           case unknown  => throw new Exception("Incorrect $array mapping: "+unknown)
         }
+      case m: Map[String, Any] if m.contains("$colArray") =>
+        m.get("$colArray") match {
+          case Some(array: Seq[String]) => ColArray(array)
+          case unknown  => throw new Exception("Incorrect $colArray mapping: "+unknown)
+        }
       case m: Map[String, Any] if m.contains("$count") =>
         m.get("$count") match {
           case Some(count: Map[String, Any]) => parseCount(count)
