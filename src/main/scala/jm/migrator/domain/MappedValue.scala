@@ -71,7 +71,7 @@ case class ToLong(column: String) extends MappedColumn {
  * Generates object ID and saves binds it to column value for future references
  */
 case class MongoId(column: String, collection: String) extends MappedColumn {
-  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection)
+  override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => MongoUtil.getMongoId(v, collection)) orNull
 
 }
 
@@ -80,7 +80,7 @@ case class MongoId(column: String, collection: String) extends MappedColumn {
  * @returns it as string
  */
 case class StringMongoId(column: String, collection: String) extends MappedColumn {
-  override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection).toString
+  override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => MongoUtil.getMongoId(v, collection).toString) orNull
 }
 
 /**
