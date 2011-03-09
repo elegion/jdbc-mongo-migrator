@@ -9,7 +9,7 @@ import jm.migrator.util.Implicits._
 
 
 trait Select {
-  def mapping: MappedValue
+  def mapping: Selectable
   def from: String
   def where: String = ""
 

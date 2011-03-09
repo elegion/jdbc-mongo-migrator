@@ -42,7 +42,6 @@ class MappingParser {
     CollectionMapping(name, from, Fields(fields), where)
   }
 
-
   def getMapping(collection: String)(obj: Any): MappedValue = {
     obj match {
       case column: String =>
@@ -116,7 +115,11 @@ class MappingParser {
 
   def parseSubselect(subselect: Map[String, Any], collection: String): Array = {
     val from = subselect.getOrElse("from", throw new Exception("No 'from' specified: " + subselect)).toString
-    val mapping = subselect get("mapping") map getMapping(collection) getOrElse (throw new Exception("No 'mapping' specified" + subselect))
+    val mapping = subselect get("mapping") map getMapping(collection) match {
+      case Some(cs: Selectable) => cs
+      case Some(mv) => throw new Exception("Invalid subselect mapping: " + mv)
+      case None => throw new Exception("No 'mapping' specified" + subselect)
+    }
     val where = subselect.get("where").getOrElse("").toString
     Array(from, mapping, where)
   }

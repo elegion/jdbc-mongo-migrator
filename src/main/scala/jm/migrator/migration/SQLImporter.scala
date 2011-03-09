@@ -61,7 +61,7 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
         var fetchedTotal = 0
         log.debug("=== db."+collectionMapping.name+" inserts: ===")
         do {
-          fetched = using(conn createStatement ) { stmt =>
+          fetched = using(conn createStatement) { stmt =>
                           query(
                             collectionMapping,
                             stmt,

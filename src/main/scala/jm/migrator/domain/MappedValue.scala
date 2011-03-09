@@ -10,14 +10,21 @@ import jm.migrator.util.ShortUrlEncoder
  * Date: 2/3/11 2:10 PM
  */
 
-abstract sealed class MappedValue {
+abstract sealed class MappedValue
+
+
+/**
+ * Value mapped to columns expression
+ */
+trait Selectable extends MappedValue {
   def columnsString: String
 }
+
 
 /**
  * Indicates that value is mapped to a single column
  */
-trait MappedColumn extends MappedValue {
+trait MappedColumn extends Selectable {
   def column: String
   def columnsString = column
   def toValue(sqlValue: Any): Any = sqlValue
@@ -30,13 +37,13 @@ object MappedColumn {
 /**
  * Maps to primitive bson value
  */
-case class SimpleValue(column: String) extends MappedValue with MappedColumn
+case class SimpleValue(column: String) extends MappedColumn
 
 /**
  * Generates object ID and saves binds it to column value for future references
  * @returns it as string
  */
-case class ToInt(column: String) extends MappedValue with MappedColumn {
+case class ToInt(column: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => v.toString.toInt) orNull
 }
 
@@ -44,7 +51,7 @@ case class ToInt(column: String) extends MappedValue with MappedColumn {
  * Generates object ID and saves binds it to column value for future references
  * @returns it as string
  */
-case class ToLong(column: String) extends MappedValue with MappedColumn {
+case class ToLong(column: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => v.toString.toLong) orNull
 }
 
@@ -52,7 +59,7 @@ case class ToLong(column: String) extends MappedValue with MappedColumn {
 /**
  * Generates object ID and saves binds it to column value for future references
  */
-case class MongoId(column: String, collection: String) extends MappedValue with MappedColumn {
+case class MongoId(column: String, collection: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection)
 
 }
@@ -61,7 +68,7 @@ case class MongoId(column: String, collection: String) extends MappedValue with 
  * Generates object ID and saves binds it to column value for future references
  * @returns it as string
  */
-case class StringMongoId(column: String, collection: String) extends MappedValue with MappedColumn {
+case class StringMongoId(column: String, collection: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = MongoUtil.getMongoId(sqlValue, collection).toString
 }
 
@@ -82,7 +89,7 @@ case class ShortUrl(expression: String) extends MappedValue with MappedColumn {
 /**
  * Maps to DBObject with fields
  */
-case class Fields(fields: Map[String, MappedValue]) extends MappedValue {
+case class Fields(fields: Map[String, MappedValue]) extends Selectable {
   def columnsString = (for {(field, MappedColumn(column)) <- fields}
     yield column ).mkString(", ")
 }
@@ -92,16 +99,14 @@ case class Fields(fields: Map[String, MappedValue]) extends MappedValue {
  */
 case class Array(
   override val from: String,
-  override val mapping: MappedValue,
+  override val mapping: Selectable,
   override val where: String = ""
-) extends MappedValue with Select {
-  def columnsString = null //TODO -- refactor and remove
-}
+) extends MappedValue with Select
 
 /**
  * Maps several column values to array
  */
-case class ColArray(cols: Seq[String]) extends MappedValue {
+case class ColArray(cols: Seq[String]) extends Selectable {
   def columnsString = cols.mkString(", ")
 }
 
@@ -114,7 +119,6 @@ case class Count(
   override val where: String = ""
 ) extends MappedValue with Select {
   def mapping = SimpleValue("COUNT(*)")
-  def columnsString = null //TODO -- refactor and remove
 }
 
 /**
@@ -127,7 +131,6 @@ case class CountMap(
 ) extends MappedValue with Select {
   override def toSQL(expressionParams: Map[String, Any]) = super.toSQL(expressionParams) + " GROUP BY "+key
   def mapping = Fields(Map("key" -> SimpleValue(key), "value" -> SimpleValue("COUNT(*)")))
-  def columnsString = null //TODO -- refactor and remove
 }
 
 
