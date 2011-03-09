@@ -18,6 +18,13 @@ abstract sealed class MappedValue
  */
 trait Selectable extends MappedValue {
   def columnsString: String
+  def colCount: Int
+
+  def toValue(columnValues: Iterable[Any]): Any
+}
+
+object Selectable {
+  def unapply(col: Selectable) = Some(col.columnsString)
 }
 
 
@@ -28,6 +35,10 @@ trait MappedColumn extends Selectable {
   def column: String
   def columnsString = column
   def toValue(sqlValue: Any): Any = sqlValue
+
+  def toValue(columnValues: Iterable[Any]) = toValue(columnValues.head)
+
+  def colCount = 1
 }
 
 object MappedColumn {
@@ -90,8 +101,12 @@ case class ShortUrl(expression: String) extends MappedValue with MappedColumn {
  * Maps to DBObject with fields
  */
 case class Fields(fields: Map[String, MappedValue]) extends Selectable {
-  def columnsString = (for {(field, MappedColumn(column)) <- fields}
+  val columnsString = (for {(field, Selectable(column)) <- fields}
     yield column ).mkString(", ")
+
+  val colCount = fields.values map { case s: Selectable => 1; case _ => 0 } reduceLeft (_ + _)
+
+  def toValue(columnValues: Iterable[Any]) = throw new UnsupportedOperationException("Fields.toValue is NIY")
 }
 
 /**
@@ -106,8 +121,11 @@ case class Array(
 /**
  * Maps several column values to array
  */
-case class ColArray(cols: Seq[String]) extends Selectable {
-  def columnsString = cols.mkString(", ")
+case class ColArray(columnValues: Seq[String]) extends Selectable {
+  val columnsString = columnValues.mkString(", ")
+  val colCount = columnValues.size
+
+  def toValue(columnValues: Iterable[Any]) = columnValues.filter(_ != null).toArray
 }
 
 

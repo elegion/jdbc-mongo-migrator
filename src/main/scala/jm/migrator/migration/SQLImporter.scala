@@ -86,7 +86,7 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
       case 0 => ""
       case lim => " LIMIT "+lim+" OFFSET "+offset
     })
-    log.debug("SQL: "+pagedSQL)
+    log.info("SQL: "+pagedSQL)
 
     using (stmt executeQuery pagedSQL) { rs: ResultSet =>
       val flatValuesMaps = process(rs, collectionMapping)
@@ -125,22 +125,23 @@ class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
   def process(rs: ResultSet, collectionMapping: CollectionMapping): Seq[Map[String, Any]] = {
     val buffer = Buffer[Map[String, Any]]()
     import scala.collection.mutable.Map
-    val columnFieldNames = collectionMapping.mapping.fields.collect{
-      case (name, col: MappedColumn) => (name, col)
+    val selectables = collectionMapping.mapping.fields.collect{
+      case (name, cols: Selectable) => (name, cols)
     }
 
     while (rs.next) {
       val map = Map[String, Any]()
-      //collect simple values from resultset
-      columnFieldNames.zipWithIndex foreach {
-        case ((fieldName, mappedColumn), index) =>
-          val rsValue = rs.getObject(index+1)
-          val value = mappedColumn toValue rsValue
-          if (value!=null) {
-            map.put(fieldName, value)
-          }
+      var index = 1
+      selectables.foreach { case (fieldName, selectable) =>
+        val indexEnd = index+selectable.colCount
+        val rsValues = for {i <- index until indexEnd} yield rs getObject i
+        val value = selectable toValue rsValues
+        if (value!=null) {
+          map.put(fieldName, value)
+        }
+        index = indexEnd
       }
-      //execute subselects
+
       collectionMapping.mapping.fields collect {
         case (name, a: Array) => {
           log.debug("SUB SELECT: "+ a.toSQL(map.toMap))
