@@ -11,7 +11,6 @@ import jm.migrator.domain._
  */
 class MappingParserTest extends Spec with MustMatchers {
 
-
   val parser = new MappingParser
   val url = getClass.getResource("/test_mapping.json").getFile
 
@@ -21,14 +20,13 @@ class MappingParserTest extends Spec with MustMatchers {
     it ("should contain one collection mapping named 'users'") {
       result must have size (1)
       result.head.name must be ("users")
-      result.head.mapping.fields must have size (10)
+      result.head.mapping.fields must have size (9)
       result.head.mapping.fields("_id") must equal (MongoId("u.id", "users"))
       result.head.mapping.fields("stringId") must equal (StringMongoId("u.id", "users"))
       result.head.mapping.fields("oldId") must equal (SimpleValue("u.id"))
       result.head.mapping.fields("username") must equal (SimpleValue("u.username"))
-      result.head.mapping.fields("counters.rating") must equal (ToInt("p.rating"))
-      result.head.mapping.fields("counters.following") must equal (Count("following_following", "user_id = ${oldId}"))
-      result.head.mapping.fields("counters.followers") must equal (Count("following_following", "victim_id = ${oldId}"))
+      result.head.mapping.fields("counters.rating") must equal (ToInt("u.rating"))
+      result.head.mapping.fields("counters.posts") must equal (Count("posts AS p", "p.user_id = ${oldId}"))
       result.head.mapping.fields("groups") must equal ( Array (
         "groups AS g LEFT JOIN members AS m ON g.id = m.group_id",
         SimpleValue("LOWER(g.slug)"),

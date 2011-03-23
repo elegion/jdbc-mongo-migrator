@@ -6,17 +6,11 @@
         "stringId" : {"$oidString" : "u.id"}
         "oldId" : "u.id"
         "username" : "u.username"
-        "counters.rating" : { "$int" : "p.rating"}
-        "counters.following" : {
+        "counters.rating" : { "$int" : "u.rating"}
+        "counters.posts" : {
             "$count" : {
-                "from" :    "following_following"
-                "where" :   "user_id = ${oldId}"
-            }
-        }
-        "counters.followers" : {
-            "$count" : {
-                "from" :    "following_following"
-                "where" :   "victim_id = ${oldId}"
+                "from" :    "posts AS p"
+                "where" :   "p.user_id = ${oldId}"
             }
         }
         "groups" : {
