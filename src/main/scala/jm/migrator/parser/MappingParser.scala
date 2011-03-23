@@ -22,6 +22,7 @@ import net.lag.logging.Logger
 class MappingParser {
   val log = Logger.get
 
+
   def parseFile(filename: String): Iterable[CollectionMapping] = {
     println("Parsing filename: "+filename)
     val input = Source.fromFile(filename).mkString

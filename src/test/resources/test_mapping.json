@@ -1,0 +1,50 @@
+{ "collections": {
+    "users": {
+      "from": "users AS u"
+      "mapping": {
+        "_id" : { "$oid" : "u.id" }
+        "stringId" : {"$oidString" : "u.id"}
+        "oldId" : "u.id"
+        "username" : "u.username"
+        "counters.rating" : { "$int" : "p.rating"}
+        "counters.following" : {
+            "$count" : {
+                "from" :    "following_following"
+                "where" :   "user_id = ${oldId}"
+            }
+        }
+        "counters.followers" : {
+            "$count" : {
+                "from" :    "following_following"
+                "where" :   "victim_id = ${oldId}"
+            }
+        }
+        "groups" : {
+            "$array" : {
+                "from" : "groups AS g LEFT JOIN members AS m ON g.id = m.group_id"
+                "mapping" : "LOWER(g.slug)"
+                "where" : "banned = 0 AND m.user_id = ${oldId}"
+             }
+         }
+        "groupPostCount" : {
+            "$countMap" : {
+                "from" : "posts AS p LEFT JOIN groups AS g ON p.group_id = g.id"
+                "key" : "LOWER(g.slug)"
+                "where" : "g.slug IS NOT NULL AND p.user_id = ${oldId}"
+             }
+         }
+        "invites" : {
+            "$array" : {
+                "from" : "group_invites AS i LEFT JOIN groups AS g ON i.group_id = g.id"
+                "mapping" : {
+                    "group" : "LOWER(g.slug)",
+                    "invitedBy" : {"$oidString" : "i.invited_by_id"}
+                }
+                "where" : "i.user_id = ${oldId}"
+            }
+
+        }
+      }
+    }
+  }
+}

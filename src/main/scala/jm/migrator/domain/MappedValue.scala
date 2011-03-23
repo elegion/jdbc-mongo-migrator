@@ -51,16 +51,14 @@ object MappedColumn {
 case class SimpleValue(column: String) extends MappedColumn
 
 /**
- * Generates object ID and saves binds it to column value for future references
- * @returns it as string
+ * Explicitly convets value to int
  */
 case class ToInt(column: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => v.toString.toInt) orNull
 }
 
 /**
- * Generates object ID and saves binds it to column value for future references
- * @returns it as string
+ * Explicitly convets value to long
  */
 case class ToLong(column: String) extends MappedColumn {
   override def toValue(sqlValue: Any) = Option(sqlValue) map ( v => v.toString.toLong) orNull

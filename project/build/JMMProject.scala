@@ -5,9 +5,11 @@ class JMMProject(info: ProjectInfo) extends DefaultProject(info) with ProguardPr
   val lift_json = "net.liftweb" %% "lift-json" % "2.2"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0.2"
 //  val querulous = "org.scalaquery" % "scalaquery" % "0.9.1"
-  val mysql = "mysql" % "mysql-connector-java" % "5.1.12"
+//  val mysql = "mysql" % "mysql-connector-java" % "5.1.12"
+  val h2 = "com.h2database" % "h2" % "1.3.152"
   val configgy = "net.lag" % "configgy" % "2.0.0" intransitive()
-  lazy val hi = task { println("Hello World"); None }
+
+  val scalatest = "org.scalatest" % "scalatest" % "1.3"
 
 //program entry point
   override def mainClass: Option[String] = Some("jm.migrator.Launcher")
