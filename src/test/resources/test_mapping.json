@@ -38,6 +38,12 @@
             }
 
         }
+      	"roles": {
+      	    "$colArray" : [
+                "CASE u.is_admin WHEN 1 THEN 'admin' ELSE NULL END",
+                "CASE u.is_staff WHEN 1 THEN 'staff' ELSE NULL END"
+      	    ]
+        }
       }
     }
   }

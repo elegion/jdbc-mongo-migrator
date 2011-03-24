@@ -25,8 +25,6 @@ class SQLImporterTest extends Spec with MustMatchers {
 
       conn.createStatement.executeUpdate("RUNSCRIPT FROM '"+script+"'") must not be (0)
       val rs = conn.createStatement.executeQuery("SELECT COUNT (*) FROM users AS u")
-      rs.next()
-      rs.getInt(1) must be (3)
 
       val parser = new MappingParser
       val mapping = parser.parseFile(getClass.getResource("/test_mapping.json").getFile)

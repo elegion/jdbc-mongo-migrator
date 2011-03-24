@@ -20,7 +20,7 @@ class MappingParserTest extends Spec with MustMatchers {
     it ("should contain one collection mapping named 'users'") {
       result must have size (1)
       result.head.name must be ("users")
-      result.head.mapping.fields must have size (9)
+      result.head.mapping.fields must have size (10)
       result.head.mapping.fields("_id") must equal (MongoId("u.id", "users"))
       result.head.mapping.fields("stringId") must equal (StringMongoId("u.id", "users"))
       result.head.mapping.fields("oldId") must equal (SimpleValue("u.id"))
@@ -41,8 +41,11 @@ class MappingParserTest extends Spec with MustMatchers {
         Fields(Map("group" -> SimpleValue("LOWER(g.slug)"), "invitedBy" -> StringMongoId("i.invited_by_id", "users"))),
         "i.user_id = ${oldId}"
       ))
-
-
+      result.head.mapping.fields("roles") must equal ( ColArray (
+        "CASE u.is_admin WHEN 1 THEN 'admin' ELSE NULL END" ::
+        "CASE u.is_staff WHEN 1 THEN 'staff' ELSE NULL END" ::
+        Nil
+      ))
     }
 
   }

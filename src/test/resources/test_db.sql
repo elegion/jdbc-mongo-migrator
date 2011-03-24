@@ -1,7 +1,9 @@
 CREATE TABLE users (
     id INT PRIMARY KEY,
     username VARCHAR(32) NOT NULL,
-    rating INT NOT NULL
+    rating INT NOT NULL,
+    is_admin TINYINT NOT NULL DEFAULT 0,
+    is_staff TINYINT NOT NULL DEFAULT 0,
 );
 
 CREATE TABLE groups (
@@ -31,9 +33,12 @@ CREATE TABLE group_invites (
 
 
 INSERT INTO users VALUES
-    (0, 'user0', 0),
-    (1, 'user1', 3),
-    (2, 'user1', 5);
+    (0, 'user0', 0, 0, 0),
+    (1, 'user1', 3, 0, 0),
+    (2, 'user2', 5, 0, 0),
+    (3, 'employee', 5, 0, 1),
+    (4, 'admin', 5, 1, 1);
+
 
 INSERT INTO groups VALUES
     (0, 'group1', 'First group'),
