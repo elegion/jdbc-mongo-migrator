@@ -1,9 +1,8 @@
 package jm.migrator
 
+import db.{MongoInsertBackend, MongoUtil}
 import migration.SQLImporter
 import parser.MappingParser
-import db.MongoUtil
-
 import net.lag.configgy.Configgy
 import net.lag.logging.Logger
 
@@ -29,7 +28,7 @@ object Launcher {
     val collections = parser.parseFile(filename)
     log.debug("Collections: "+collections)
     log.debug(collections toString)
-    val importer = new SQLImporter(collections)
+    val importer = new SQLImporter(collections) with MongoInsertBackend
     importer.fetch// foreach (seq => log.debug(seq.toString))
     MongoUtil.close
     ()

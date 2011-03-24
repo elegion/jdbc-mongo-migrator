@@ -9,6 +9,7 @@ import collection.mutable.Buffer
 import com.mongodb.casbah.Imports._
 import jm.migrator.db.MongoUtil._
 import java.sql.{Statement, Connection, ResultSetMetaData, ResultSet}
+import jm.migrator.db.InsertBackend
 
 /**
  * Authod: Yuri Buyanov
@@ -48,7 +49,7 @@ case object Meta {
 }
 
 
-class SQLImporter(val mapping: Iterable[CollectionMapping] ) {
+abstract class SQLImporter(val mapping: Iterable[CollectionMapping]) extends InsertBackend {
   val log = Logger get
   val config = Configgy.config
   val limit = config.getInt("jdbc.limit", 0)

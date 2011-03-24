@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 
 import net.lag.logging.Logger
 import net.lag.configgy.Configgy
+import com.mongodb.casbah.Imports
 
 /**
  * Authod: Yuri Buyanov
@@ -109,4 +110,12 @@ object MongoUtil {
       conn.close
     }
   }
+}
+
+trait InsertBackend {
+  def doInsert: (Seq[DBObject], String) => Unit
+}
+
+trait MongoInsertBackend extends InsertBackend {
+  def doInsert = MongoUtil.doInsert
 }

@@ -6,6 +6,7 @@ import java.sql.{DriverManager, Connection}
 import net.lag.configgy.Configgy
 import org.scalatest.matchers.MustMatchers
 import jm.migrator.db.DBUtil._
+import jm.migrator.db.MongoInsertBackend
 ;
 
 
@@ -28,7 +29,7 @@ class SQLImporterTest extends Spec with MustMatchers {
 
       val parser = new MappingParser
       val mapping = parser.parseFile(getClass.getResource("/test_mapping.json").getFile)
-      val importer = new SQLImporter(mapping)
+      val importer = new SQLImporter(mapping) with MongoInsertBackend
       it ("Should fetch data") {
         val fetchResult = importer.fetch
       }
