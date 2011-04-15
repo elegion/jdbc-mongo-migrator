@@ -10,6 +10,7 @@ import jm.migrator.db.InsertBackend
 import com.mongodb.DBObject
 
 import com.mongodb.casbah.Imports._
+import collection.mutable.ArrayBuffer
 
 ;
 
@@ -58,7 +59,12 @@ class SQLImporterTest extends Spec with MustMatchers {
         val user0 = userInserts(0)
         user0.getAs[String]("username") must equal (Some("user0"))
         user0.expand[Int]("counters.rating") must equal (Some(0))
-
+        user0.expand[Int]("counters.posts") must equal (Some(4))
+        val user0Groups = user0.getAs[ArrayBuffer[String]]("groups").getOrElse(ArrayBuffer[String]())
+        user0Groups must have size 2
+        user0Groups.toList must equal (List("group1", "group2"))
+        user0.expand[Int]("groupPostCount.group1") must equal (Some(2))
+        user0.expand[Int]("groupPostCount.group2") must equal (Some(1))
         //TODO: further tests
       }
     }

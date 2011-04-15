@@ -43,3 +43,20 @@ INSERT INTO users VALUES
 INSERT INTO groups VALUES
     (0, 'group1', 'First group'),
     (1, 'group2', 'Second group');
+
+INSERT INTO members VALUES
+    (0, 0, 0),
+    (0, 1, 0),
+    (0, 2, 0),
+    (0, 3, 0),
+    (1, 0, 0),
+    (1, 3, 0),
+    (1, 4, 0);
+
+INSERT INTO posts VALUES
+    (0, 0, NULL, 'Simple post by user0'),
+    (1, 0, 0, 'Group1 post by user0'),
+    (2, 0, 0, 'Another Group1 post by user0'),
+    (3, 0, 1, 'Group2 post by user0'),
+    (4, 1, 0, 'Group1 post by user1');
+
