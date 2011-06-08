@@ -147,10 +147,10 @@ The tool uses [configgy](https://github.com/robey/configgy) for configuration an
 
     #logging parameters, see configgy readme for details
     log {
-      filename = "migration.log"
-      level = "info"
-      utc = false
-      console = false
+        filename = "migration.log"
+        level = "info"
+        utc = false
+        console = false
     }
 
 
