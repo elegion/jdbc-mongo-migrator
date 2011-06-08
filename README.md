@@ -23,6 +23,7 @@ Features:
 Mapping format
 --------------
 Example of mapping file:
+
     { "collections": {
         //MongoDB collection name. There could be several mappings for single collection,
         //which result in consecutive inserts
