@@ -20,6 +20,14 @@ Features:
 * Cached column-to-objectId bindings, which allows to refer not-yet-inserted documents.
 * Batch select/insert, may significally improve performance
 
+Usage:
+------
+jmm_2.8.1-1.0.min.jar contains all necessary dependencies so after creating config and mapping files, simply run it like `java -jar jmm_2.8.1-1.0.min.jar [config]`
+
+Supported databases:
+--------------------
+The migration tool jar contains MySQL and H2 JDBC drivers, but it should work for every DB you'll provide JDBC driver for. Simply add necessary jars to the classpath and set proper driver class name and JDBC URI in config file.
+
 Mapping format
 --------------
 Example of mapping file:
